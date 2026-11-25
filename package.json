@@ -1,0 +1,19 @@
+{
+  "name": "gemini-desktop-for-linux",
+  "productName": "Gemini",
+  "version": "1.0.0",
+  "description": "Lightweight Electron desktop wrapper for Google Gemini on Linux",
+  "main": "src/main.js",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gogrhw/gemini-desktop-for-linux.git"
+  },
+  "scripts": {
+    "start": "electron .",
+    "start:wayland": "electron . --ozone-platform=wayland --enable-wayland-ime --wayland-text-input-version=3"
+  },
+  "devDependencies": {
+    "electron": "^45.4.1"
+  }
+}

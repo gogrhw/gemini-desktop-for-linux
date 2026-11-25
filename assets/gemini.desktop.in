@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Gemini
+Comment=Google Gemini Desktop App
+GenericName=AI Assistant
+Exec=@EXEC_PATH@ %U
+Icon=gemini
+Terminal=false
+StartupNotify=true
+StartupWMClass=gemini
+Categories=Utility;Network;Development;
