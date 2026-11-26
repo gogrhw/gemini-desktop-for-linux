@@ -345,10 +345,12 @@ function attachShortcuts(win) {
       return;
     }
 
-    // 屏蔽浏览器风格快捷键：刷新、缩放、历史前进/后退、打印/保存网页/查看源码
+    // 屏蔽浏览器风格快捷键：刷新、焦点切换、缩放、历史前进/后退、打印/保存网页/查看源码
     if (
       (ctrl && !input.alt && key === 'r') ||
       input.key === 'F5' ||
+      input.key === 'F6' ||
+      input.key === 'F7' ||
       input.key === 'BrowserRefresh' ||
       (ctrl && !input.alt && (key === '=' || key === '+' || key === '-' || key === '_' || key === '0')) ||
       (input.alt && !ctrl && !input.shift && (input.key === 'ArrowLeft' || input.key === 'ArrowRight')) ||
@@ -433,7 +435,52 @@ function createMainWindow(startUrl = GEMINI_URL) {
           :is(message-content, user-query .query-text, rich-textarea .ql-editor) {
           zoom: 1;
         }
+        /* 屏蔽浏览器默认焦点黑框与 Angular Material / GM3 键盘焦点指示器 */
+        :root {
+          --mat-focus-indicator-border-width: 0px !important;
+          --gm3-focus-ring-active-width: 0px !important;
+        }
+        *:focus,
+        *:focus-visible,
+        *:focus::before,
+        *:focus-visible::before,
+        *:focus::after,
+        *:focus-visible::after {
+          outline: none !important;
+        }
+        .mat-focus-indicator::before,
+        .mat-mdc-focus-indicator::before {
+          display: none !important;
+        }
       `).catch((err) => console.error('[Gemini] Failed to apply desktop styles:', err));
+      wc.executeJavaScript(`
+        if (!window.__geminiFocusGuards) {
+          window.__geminiFocusGuards = true;
+          // 屏蔽 Gemini 页面内 Tab 触发元素焦点跳转（保留代码编辑器缩进）
+          window.addEventListener('keydown', (e) => {
+            if (e.key === 'Tab' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+              const el = document.activeElement;
+              const inCodeEditor = el && el.closest && el.closest('.monaco-editor, .cm-editor, .CodeMirror');
+              if (!inCodeEditor) {
+                e.preventDefault();
+              }
+            }
+          }, true);
+          // 窗口恢复聚焦时，若焦点停留在非输入元素上则自动失焦
+          window.addEventListener('focus', () => {
+            const el = document.activeElement;
+            if (!el || el === document.body || el === document.documentElement) return;
+            const isEditable =
+              el.tagName === 'INPUT' ||
+              el.tagName === 'TEXTAREA' ||
+              el.tagName === 'SELECT' ||
+              el.isContentEditable;
+            if (!isEditable && typeof el.blur === 'function') {
+              el.blur();
+            }
+          });
+        }
+      `).catch((err) => console.error('[Gemini] Failed to install focus guards:', err));
     }
   });
 
